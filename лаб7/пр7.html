@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор</title>
+    <style>
+        /* Общие стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        body {
+            background: #f4f4f4; /* Светло-серый фон */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Стили калькулятора */
+        .calculator {
+            background: #4CAF50; /* Зеленый фон */
+            border: 3px solid #555;
+            border-radius: 10px;
+            padding: 15px;
+            width: 280px;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.5);
+        }
+        .display {
+            background: #444; /* Ещё темнее фон */
+            border: 2px inset #666;
+            margin-bottom: 15px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .display-input {
+            background: #555; /* Самый тёмный фон */
+            border: 1px solid #777;
+            color: #fff; /* Белый текст */
+            font-size: 24px;
+            width: 100%;
+            text-align: right;
+            outline: none;
+            font-family: 'Courier New', monospace;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        /* Стили кнопок */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        .btn {
+            border: 2px outset #666;
+            font-size: 16px;
+            padding: 12px 5px;
+            cursor: pointer;
+            outline: none;
+            font-weight: bold;
+            border-radius: 5px;
+            color: #fff; /* Белый текст */
+        }
+        .btn:active {
+            border: 2px inset #666;
+        }
+        .btn-number {
+            background: #777; /* Серый фон */
+            border-color: #888;
+        }
+        .btn-function {
+            background: #007bff; /* Синий фон для функций */
+            border-color: #0056b3;
+        }
+        .btn-zero {
+            grid-column: span 1;
+        }
+        .btn-plus {
+            grid-row: span 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <input type="text" class="display-input" id="display" value="0" readonly>
+        </div>
+        <div class="buttons">
+            <button class="btn btn-function" onclick="clearAll()">C/CE</button>
+            <button class="btn btn-function" onclick="powerOff()">OFF</button>
+            <button class="btn btn-function" onclick="squareRoot()">√</button>
+            <button class="btn btn-function" onclick="percentage()">%</button>
+            <button class="btn btn-function" onclick="memoryRecall()">MRC</button>
+            <button class="btn btn-function" onclick="memorySubtract()">M-</button>
+            <button class="btn btn-function" onclick="memoryAdd()">M+</button>
+            <button class="btn btn-function" onclick="operation('/')">/</button>
+            <button class="btn btn-number" onclick="appendNumber('7')">7</button>
+            <button class="btn btn-number" onclick="appendNumber('8')">8</button>
+            <button class="btn btn-number" onclick="appendNumber('9')">9</button>
+            <button class="btn btn-function" onclick="operation('*')">×</button>
+            <button class="btn btn-number" onclick="appendNumber('4')">4</button>
+            <button class="btn btn-number" onclick="appendNumber('5')">5</button>
+            <button class="btn btn-number" onclick="appendNumber('6')">6</button>
+            <button class="btn btn-function" onclick="operation('-')">-</button>
+            <button class="btn btn-number" onclick="appendNumber('1')">1</button>
+            <button class="btn btn-number" onclick="appendNumber('2')">2</button>
+            <button class="btn btn-number" onclick="appendNumber('3')">3</button>
+            <button class="btn btn-function btn-plus" onclick="operation('+')">+</button>
+            <button class="btn btn-number" onclick="appendNumber('0')">0</button>
+            <button class="btn btn-number" onclick="appendNumber('.')">.</button>
+            <button class="btn btn-function" onclick="calculate()">=</button>
+        </div>
+    </div>
+    <script>
+        let currentInput = '0';
+        let previousInput = '';
+        let operator = '';
+        let shouldResetDisplay = false;
+        let memory = 0;
+        const display = document.getElementById('display');
+
+        function updateDisplay() {
+            display.value = currentInput;
+        }
+
+        function appendNumber(num) {
+            if (shouldResetDisplay) {
+                currentInput = '';
+                shouldResetDisplay = false;
+            }
+            if (num === '.' && currentInput.includes('.')) {
+                return;
+            }
+            if (currentInput === '0' && num !== '.') {
+                currentInput = num;
+            } else {
+                currentInput += num;
+            }
+            updateDisplay();
+        }
+
+        function operation(op) {
+            if (operator !== '' && !shouldResetDisplay) {
+                calculate();
+            }
+            previousInput = currentInput;
+            operator = op;
+            shouldResetDisplay = true;
+        }
+
+        function calculate() {
+            if (operator === '' || shouldResetDisplay) {
+                return;
+            }
+            let result;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+            if (isNaN(prev) || isNaN(current)) {
+                return;
+            }
+            switch (operator) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    break;
+                case '/':
+                    if (current === 0) {
+                        currentInput = 'Error';
+                        updateDisplay();
+                        return;
+                    }
+                    result = prev / current;
+                    break;
+                default:
+                    return;
+            }
+            currentInput = result.toString();
+            operator = '';
+            previousInput = '';
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentInput = '0';
+            previousInput = '';
+            operator = '';
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        function clearEntry() {
+            currentInput = '0';
+            updateDisplay();
+        }
+
+        function powerOff() {
+            currentInput = '0';
+            previousInput = '';
+            operator = '';
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        function squareRoot() {
+            const num = parseFloat(currentInput);
+            if (num < 0) {
+                currentInput = 'Error';
+            } else {
+                currentInput = Math.sqrt(num).toString();
+            }
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function percentage() {
+            const num = parseFloat(currentInput);
+            currentInput = (num / 100).toString();
+            updateDisplay();
+        }
+
+        function memoryRecall() {
+            currentInput = memory.toString();
+            updateDisplay();
+        }
+
+        function memoryAdd() {
+            memory += parseFloat(currentInput) || 0;
+            shouldResetDisplay = true;
+        }
+
+        function memorySubtract() {
+            memory -= parseFloat(currentInput) || 0;
+            shouldResetDisplay = true;
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
